@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}設備一覧{% endblock %}
+
+{% block content %}
+<h1>設備一覧</h1>
+
+<!-- 新規追加ボタン -->
+<button onclick="openModal()">➕ 新規設備を追加</button>
+
+<div class="card-grid">
+  {% for eq in equipment_data %}
+    <div class="card {% if eq.abnormal %}abnormal{% endif %}">
+      <div class="card-title">ID: {{ eq.id }}</div>
+      <div class="latest-value">最新ログ: {{ eq.latest }}</div>
+      <a href="/equipment_config/{{ eq.id }}">設定画面へ</a>
+      <button onclick="testConnection('{{ eq.id }}')">🧪 接続確認</button>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- モーダル -->
+<div id="addModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">×</span>
+    <h3>設備を追加</h3>
+    <form id="addForm" method="post" action="/equipment_add">
+      <input type="text" name="equipment_id" placeholder="設備ID" required />
+      <button type="submit">追加</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openModal() {
+    document.getElementById('addModal').style.display = 'block';
+  }
+
+  function closeModal() {
+    document.getElementById('addModal').style.display = 'none';
+  }
+
+  async function testConnection(id) {
+    const res = await fetch('/test-connection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: id })
+    });
+    const result = await res.json();
+    alert(`${id} の接続テスト結果: ${result.success ? '成功' : '失敗'}`);
+  }
+
+  // 外をクリックしたらモーダル閉じる
+  window.onclick = function(e) {
+    if (e.target === document.getElementById('addModal')) {
+      closeModal();
+    }
+  }
+</script>
+{% endblock %}
