@@ -1,0 +1,6 @@
+{
+  "manufacturer": "Mitsubishi",
+  "ip": "192.168.0.1",
+  "port": 25565,
+  "interval": 1000
+}

@@ -1,169 +1,43 @@
 {% extends "base.html" %}
-{% block title %}設備一覧{% endblock %}
+{% block title %}設定画面{% endblock %}
 
 {% block content %}
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <title>{{ equipment_id }} 設定</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background-color: #f5f5f5;
-      padding: 40px;
-      margin: 0;
-      transition: background-color 0.3s, color 0.3s;
-    }
+<div class="container">
+  <h1>設備設定</h1>
 
-    .dark-mode {
-      background-color: #121212;
-      color: #eee;
-    }
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flashes">
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
 
-    .container {
-      max-width: 500px;
-      background: white;
-      margin: auto;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      transition: background 0.3s, color 0.3s;
-    }
+  <form method="post">
+    <label>設備ID:</label>
+    <input type="text" name="equipment_id" value="{{ current.equipment_id or '' }}" required>
 
-    .dark-mode .container {
-      background: #1e1e1e;
-      color: #eee;
-    }
+    <label>PLCメーカー:</label>
+    <select name="manufacturer" required>
+      {% for m in manufacturers %}
+        <option value="{{ m }}" {% if current.manufacturer == m %}selected{% endif %}>{{ m }}</option>
+      {% endfor %}
+    </select>
 
-    h1 {
-      text-align: center;
-      margin-bottom: 24px;
-    }
+    <label>IPアドレス:</label>
+    <input type="text" name="ip" value="{{ current.ip or '' }}" required>
 
-    label {
-      display: block;
-      margin-bottom: 10px;
-      font-weight: bold;
-    }
+    <label>ポート:</label>
+    <input type="number" name="port" value="{{ current.port or '' }}" required>
 
-    input, select {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 20px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      font-size: 1em;
-      background-color: white;
-      color: black;
-    }
+    <label>ログ取得間隔 (ms):</label>
+    <input type="number" name="interval" value="{{ current.interval or 1000 }}" required>
 
-    .dark-mode input,
-    .dark-mode select {
-      background-color: #2a2a2a;
-      color: #eee;
-      border: 1px solid #555;
-    }
+    <button type="submit">保存</button>
+  </form>
 
-    button {
-      width: 100%;
-      padding: 10px;
-      font-size: 1em;
-      background-color: #1976d2;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #1565c0;
-    }
-
-    .back-link {
-      display: block;
-      margin-top: 20px;
-      text-align: center;
-    }
-
-    .back-link a {
-      color: #1976d2;
-      text-decoration: none;
-    }
-
-    .dark-mode .back-link a {
-      color: #90caf9;
-    }
-
-    .back-link a:hover {
-      text-decoration: underline;
-    }
-
-    .toggle-theme {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background-color: #333;
-      color: white;
-      padding: 6px 12px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.9em;
-    }
-
-    .light .toggle-theme {
-      background-color: #ccc;
-      color: #222;
-    }
-  </style>
-</head>
-<body>
-  <button class="toggle-theme" onclick="toggleTheme()">🌙 ダークモード切替</button>
-  <div class="container">
-    <h1>設備設定 - {{ equipment_id }}</h1>
-    <form method="post">
-      <label>メーカー:
-        <select name="manufacturer" required>
-          {% for m in manufacturers %}
-          <option value="{{ m }}" {% if current.manufacturer == m %}selected{% endif %}>{{ m }}</option>
-          {% endfor %}
-        </select>
-      </label>
-
-      <label>IPアドレス:
-        <input type="text" name="ip" value="{{ current.ip or '' }}" required>
-      </label>
-
-      <label>ポート:
-        <input type="number" name="port" value="{{ current.port or '' }}" required>
-      </label>
-
-      <label>読取間隔（ms）:
-        <input type="number" name="interval" value="{{ current.interval or 1000 }}" required>
-      </label>
-
-      <button type="submit">保存</button>
-    </form>
-
-    <div class="back-link">
-      <a href="/">← 設備一覧に戻る</a>
-    </div>
-  </div>
-
-  <script>
-    function toggleTheme() {
-      const isDark = document.body.classList.toggle("dark-mode");
-      localStorage.setItem("theme", isDark ? "dark" : "light");
-    }
-
-    // 初期表示でlocalStorageから復元
-    window.onload = () => {
-      if (localStorage.getItem("theme") === "dark") {
-        document.body.classList.add("dark-mode");
-      }
-    };
-  </script>
-</body>
-</html>
+  <a href="/"><button>← 戻る</button></a>
+</div>
 {% endblock %}

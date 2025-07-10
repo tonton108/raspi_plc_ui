@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}モニタリング{% endblock %}
+{% block content %}
+<div class="container">
+  <h1>PLCモニタリング</h1>
+
+  <div class="status">
+    <p><strong>接続先:</strong> {{ config.manufacturer }} @ {{ config.ip }}:{{ config.port }}</p>
+    <p><strong>状態:</strong>
+      {% if status == "稼働" %}✅ 稼働中
+      {% elif status == "停止" %}⛔ 停止中
+      {% else %}⏸️ 一時停止
+      {% endif %}
+    </p>
+    <p><strong>サイクルタイム:</strong> {{ cycle_time }} 秒</p>
+  </div>
+
+  <form method="get" action="/equipment_config">
+    <button type="submit">⚙️ 接続設定</button>
+  </form>
+
+  <form onsubmit="event.preventDefault(); testConnection();">
+    <button>🧪 接続テスト</button>
+    <p id="test-result">未実行</p>
+  </form>
+</div>
+
+<script>
+async function testConnection() {
+  const res = await fetch('/test-connection', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ip: "{{ config.ip }}",
+      port: "{{ config.port }}",
+      manufacturer: "{{ config.manufacturer }}"
+    })
+  });
+  const result = await res.json();
+  document.getElementById('test-result').textContent = result.success ? "接続成功！" : "接続失敗...";
+}
+</script>
+{% endblock %}
