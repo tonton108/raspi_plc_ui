@@ -1,43 +1,92 @@
 {% extends "base.html" %}
-{% block title %}モニタリング{% endblock %}
+
 {% block content %}
 <div class="container">
-  <h1>PLCモニタリング</h1>
+  <div class="monitor-card">
+    <h2>📊 モニタリング</h2>
+    <p><strong>設備ID:</strong> {{ equipment.id }}</p>
+    <p><strong>メーカー:</strong> {{ equipment.manufacturer or 'N/A' }}</p>
+    <p><strong>接続先:</strong> {{ equipment.ip }}:{{ equipment.port }}</p>
+    <p><strong>サイクルタイム:</strong> <span id="cycle-time">N/A</span></p>
+    <p><strong>状態:</strong> <span id="equipment-status" class="status-badge gray">未接続</span></p>
 
-  <div class="status">
-    <p><strong>接続先:</strong> {{ config.manufacturer }} @ {{ config.ip }}:{{ config.port }}</p>
-    <p><strong>状態:</strong>
-      {% if status == "稼働" %}✅ 稼働中
-      {% elif status == "停止" %}⛔ 停止中
-      {% else %}⏸️ 一時停止
-      {% endif %}
-    </p>
-    <p><strong>サイクルタイム:</strong> {{ cycle_time }} 秒</p>
+    <div class="button-group">
+      <button onclick="testConnection()" class="btn primary">🔌 接続テスト</button>
+      <a href="{{ url_for('equipment_config', equipment_id=equipment.id) }}" class="btn settings">⚙️ 設定変更</a>
+    </div>
   </div>
-
-  <form method="get" action="/equipment_config">
-    <button type="submit">⚙️ 接続設定</button>
-  </form>
-
-  <form onsubmit="event.preventDefault(); testConnection();">
-    <button>🧪 接続テスト</button>
-    <p id="test-result">未実行</p>
-  </form>
 </div>
 
 <script>
-async function testConnection() {
-  const res = await fetch('/test-connection', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      ip: "{{ config.ip }}",
-      port: "{{ config.port }}",
-      manufacturer: "{{ config.manufacturer }}"
-    })
-  });
-  const result = await res.json();
-  document.getElementById('test-result').textContent = result.success ? "接続成功！" : "接続失敗...";
-}
+  function updateMonitoringData() {
+    fetch('/api/logs')
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("ログ取得失敗");
+        }
+        return res.json();
+      })
+      .then(data => {
+        const now = new Date();
+        const ts = new Date(data.timestamp);
+  
+        const cycleTime = lastTimestamp ? now - lastTimestamp : null;
+        lastTimestamp = now;
+  
+        if (cycleTime !== null) {
+          document.getElementById("cycle-time").textContent = `${cycleTime} ms`;
+  
+          const statusEl = document.getElementById("equipment-status");
+          if (cycleTime > 3000) {
+            statusEl.textContent = "停止";
+            statusEl.className = "status-badge red";
+          } else {
+            statusEl.textContent = "稼働中";
+            statusEl.className = "status-badge green";
+          }
+        }
+      })
+      .catch(err => {
+        console.error("ログ取得失敗", err);
+        document.getElementById("cycle-time").textContent = "N/A";
+        const statusEl = document.getElementById("equipment-status");
+        statusEl.textContent = "未接続";
+        statusEl.className = "status-badge gray";
+      });
+  }
+  
+  function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3000);
+  }
+
+  async function testConnection() {
+    showToast("接続中…");
+
+    try {
+      const response = await fetch("/test-connection", {
+        method: "POST"
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        showToast("接続に成功しました。");
+      } else {
+        showToast("接続に失敗しました。");
+      }
+
+      // ページ更新で「状態：稼働中／停止」を反映
+      setTimeout(() => {
+        location.reload();
+      }, 1500);
+
+    } catch (error) {
+      showToast("エラーが発生しました。");
+    }
+  }
 </script>
 {% endblock %}

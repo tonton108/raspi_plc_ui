@@ -4,3 +4,5 @@ sqlalchemy
 flask_sqlalchemy
 flask-migrate
 python-dotenv
+pymcprotocol
+pandas

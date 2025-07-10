@@ -1,43 +1,98 @@
 {% extends "base.html" %}
-{% block title %}設定画面{% endblock %}
+{% block title %}設備設定{% endblock %}
 
 {% block content %}
 <div class="container">
-  <h1>設備設定</h1>
+  <div class="monitor-card">
+    <h2>🔧 設備設定</h2>
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <ul class="flashes">
-        {% for category, message in messages %}
-          <li class="{{ category }}">{{ message }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
+    <form method="post" class="form-grid">
+      <div class="form-group">
+        <label for="equipment_id"><strong>設備ID:</strong></label>
+        <input type="text" id="equipment_id" name="equipment_id" value="{{ current.equipment_id or '' }}" required>
+      </div>
 
-  <form method="post">
-    <label>設備ID:</label>
-    <input type="text" name="equipment_id" value="{{ current.equipment_id or '' }}" required>
+      <div class="form-group">
+        <label for="manufacturer"><strong>PLCメーカー:</strong></label>
+        <select id="manufacturer" name="manufacturer" required>
+          {% for m in manufacturers %}
+            <option value="{{ m }}" {% if current.manufacturer == m %}selected{% endif %}>{{ m }}</option>
+          {% endfor %}
+        </select>
+      </div>
 
-    <label>PLCメーカー:</label>
-    <select name="manufacturer" required>
-      {% for m in manufacturers %}
-        <option value="{{ m }}" {% if current.manufacturer == m %}selected{% endif %}>{{ m }}</option>
-      {% endfor %}
-    </select>
+      <div class="form-group">
+        <label for="series"><strong>シリーズ:</strong></label>
+        <select id="series" name="series" required>
+          {% for s in series_list.get(current.manufacturer, []) %}
+            <option value="{{ s }}" {% if current.series == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
 
-    <label>IPアドレス:</label>
-    <input type="text" name="ip" value="{{ current.ip or '' }}" required>
+      <div class="form-group">
+        <label for="ip"><strong>IPアドレス:</strong></label>
+        <input type="text" id="ip" name="ip" value="{{ current.ip or '' }}" required>
+      </div>
 
-    <label>ポート:</label>
-    <input type="number" name="port" value="{{ current.port or '' }}" required>
+      <div class="form-group">
+        <label for="port"><strong>ポート:</strong></label>
+        <input type="number" id="port" name="port" value="{{ current.port or '' }}" required>
+      </div>
 
-    <label>ログ取得間隔 (ms):</label>
-    <input type="number" name="interval" value="{{ current.interval or 1000 }}" required>
+      <div class="form-group">
+        <label for="interval"><strong>ログ取得間隔 (ms):</strong></label>
+        <input type="number" id="interval" name="interval" value="{{ current.interval or 1000 }}" required>
+      </div>
 
-    <button type="submit">保存</button>
-  </form>
-
-  <a href="/"><button>← 戻る</button></a>
+      <div class="button-group">
+        <button type="submit" class="btn save">💾 保存</button>
+        <a href="/" class="btn back">← 戻る</a>
+      </div>
+    </form>
+  </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const manufacturerSelect = document.getElementById("manufacturer");
+    const seriesSelect = document.getElementById("series");
+
+    manufacturerSelect.addEventListener("change", function () {
+      const selected = this.value;
+      fetch(`/api/series?manufacturer=${selected}`)
+        .then(res => res.json())
+        .then(data => {
+          seriesSelect.innerHTML = "";
+
+          if (data.length > 0) {
+            data.forEach((s, idx) => {
+              const option = document.createElement("option");
+              option.value = s;
+              option.textContent = s;
+              if (idx === 0) option.selected = true;
+              seriesSelect.appendChild(option);
+            });
+          } else {
+            const option = document.createElement("option");
+            option.textContent = "シリーズなし";
+            option.disabled = true;
+            option.selected = true;
+            seriesSelect.appendChild(option);
+          }
+        })
+        .catch(err => {
+          console.error("シリーズ取得エラー", err);
+          seriesSelect.innerHTML = "";
+          const option = document.createElement("option");
+          option.textContent = "取得失敗";
+          option.disabled = true;
+          option.selected = true;
+          seriesSelect.appendChild(option);
+        });
+    });
+  });
+</script>
+
+  
 {% endblock %}

@@ -3,37 +3,97 @@
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}PLC UI{% endblock %}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <style>
-    .toggle-theme {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background-color: #333;
-      color: white;
-      padding: 6px 12px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      z-index: 9999;
+
+  <!-- 初期描画前にダークモードを適用してチカチカ防止 -->
+  <script>
+    if (localStorage.getItem("theme") === "dark") {
+      document.documentElement.classList.add("dark-mode");
     }
-    .dark-mode .toggle-theme {
-      background-color: #999;
-      color: #222;
+  </script>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- トースト通知用CSS -->
+  <style>
+    .toast {
+      visibility: hidden;
+      min-width: 200px;
+      background-color: #323232;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 12px;
+      position: fixed;
+      z-index: 9999;
+      right: 20px;
+      bottom: 30px;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.5s ease, bottom 0.5s ease;
+    }
+    .toast.show {
+      visibility: visible;
+      opacity: 1;
+      bottom: 50px;
     }
   </style>
 </head>
+
 <body>
-  <button class="toggle-theme" onclick="toggleTheme()">🌙 ダークモード切替</button>
-  {% block content %}{% endblock %}
+  <!-- トースト通知本体 -->
+  <div id="toast" class="toast">通知</div>
+
+  <!-- テーマ切替ボタン -->
+  <button onclick="toggleTheme()" style="position: fixed; bottom: 20px; right: 20px;">
+    🌗 テーマ切替
+  </button>
+
+  <div class="container">
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- Flaskのflashメッセージを埋め込む（script内で評価） -->
+  <script type="text/template" id="flask-messages">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          showToast("{{ message }}");
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </script>
+
+  <!-- テーマ切替 & トースト通知JS -->
   <script>
     function toggleTheme() {
-      const isDark = document.body.classList.toggle("dark-mode");
-      localStorage.setItem("theme", isDark ? "dark" : "light");
+      document.body.classList.toggle('dark');
+      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
     }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 3000);
+    }
+
     window.onload = () => {
-      if (localStorage.getItem("theme") === "dark") {
-        document.body.classList.add("dark-mode");
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark');
+      }
+
+      // Flaskメッセージ表示（テンプレートから取得）
+      const tmpl = document.getElementById("flask-messages");
+      if (tmpl) {
+        const content = tmpl.textContent;
+        try {
+          eval(content);
+        } catch (e) {
+          console.warn("トーストの評価に失敗:", e);
+        }
       }
     };
   </script>

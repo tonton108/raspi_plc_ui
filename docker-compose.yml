@@ -28,6 +28,7 @@ services:
       - db
     volumes:
       - .:/app
+      - ./log_archives:/app/log_archives
 
 volumes:
   pgdata:
