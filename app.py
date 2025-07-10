@@ -125,5 +125,48 @@ def test_connection():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route("/api/register", methods=["POST"])
+def api_register():
+    try:
+        data = request.get_json()
+
+        equipment_id = data.get("equipment_id", "").strip()
+        manufacturer = data.get("manufacturer", "").strip()
+        ip = data.get("ip", "").strip()
+        port = int(data.get("port", 0))
+        interval = int(data.get("interval", 1000))
+
+        if not equipment_id or not ip or not manufacturer:
+            return jsonify({"success": False, "error": "必須項目が不足しています"}), 400
+
+        ipaddress.ip_address(ip)  # IP形式チェック
+
+        # 既存レコードがあれば更新、なければ新規追加
+        equipment = Equipment.query.filter_by(equipment_id=equipment_id).first()
+        if equipment:
+            equipment.manufacturer = manufacturer
+            equipment.ip = ip
+            equipment.port = port
+            equipment.interval = interval
+            equipment.updated_at = datetime.utcnow()
+        else:
+            equipment = Equipment(
+                equipment_id=equipment_id,
+                manufacturer=manufacturer,
+                ip=ip,
+                port=port,
+                interval=interval
+            )
+            db.session.add(equipment)
+
+        db.session.commit()
+        return jsonify({"success": True})
+
+    except ValueError as ve:
+        return jsonify({"success": False, "error": str(ve)}), 400
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
