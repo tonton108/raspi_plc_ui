@@ -50,6 +50,8 @@ docker compose up --build
 
 ```url
 http://localhost:5000
+※ ラズパイにHDMIディスプレイやタッチパネルが接続されている前提です。
+※ 別のPCからアクセスしたい場合は、ラズパイのIPアドレスを使用してください（例： `http://192.168.0.101:5000/equipment_config`）。
 ```
 
 ---
