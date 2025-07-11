@@ -169,69 +169,7 @@ def get_series():
     }
     manufacturer = request.args.get("manufacturer")
     return jsonify(series_dict.get(manufacturer, []))
-
-from pymcprotocol import Type3E
-
-def read_from_plc(ip, port, manufacturer):
-    # ✅ ダミー通信モード（環境変数でON/OFF）
-    if os.getenv("USE_DUMMY_PLC", "false").lower() == "true":
-        print("⚠️ [DUMMY MODE] PLC通信をスキップし、ダミーデータを返します。")
-        return {
-            "current": round(random.uniform(2.0, 5.0), 1),       # 例：3.7A
-            "temperature": round(random.uniform(20.0, 40.0), 1), # 例：32.4℃
-            "pressure": round(random.uniform(0.1, 0.8), 2)       # 例：0.45MPa
-        }
-
-    try:
-        if manufacturer.lower() in ["mitsubishi", "keyence"]:
-            from pymcprotocol import Type3E
-            plc = Type3E()
-            plc.connect(ip, port)
-
-            current_raw = plc.batchread_wordunits(headdevice="D100", readsize=1)
-            temperature_raw = plc.batchread_wordunits(headdevice="D101", readsize=1)
-            pressure_raw = plc.batchread_wordunits(headdevice="D102", readsize=1)
-
-            current = current_raw / 10.0
-            temperature = temperature_raw / 10.0
-            pressure = pressure_raw / 100.0
-
-            return {
-                "current": current,
-                "temperature": temperature,
-                "pressure": pressure
-            }
-
-        elif manufacturer.lower() == "omron":
-            import fins.udp
-            fins_client = fins.udp.udp_master()
-            fins_client.dest_ip = ip
-            fins_client.connect()
-
-            def read_word(addr):
-                res = fins_client.memory_area_read(b'\x82', addr, 1)
-                return int.from_bytes(res[0:2], byteorder='big')
-
-            current_raw = read_word(100)
-            temperature_raw = read_word(101)
-            pressure_raw = read_word(102)
-
-            current = current_raw / 10.0
-            temperature = temperature_raw / 10.0
-            pressure = pressure_raw / 100.0
-
-            return {
-                "current": current,
-                "temperature": temperature,
-                "pressure": pressure
-            }
-
-        else:
-            raise ValueError(f"不明なメーカー: {manufacturer}")
-    except Exception as e:
-        print(f"PLC読取エラー: {e}")
-        return None
-
+    
 @app.route("/api/logs")
 def get_logs():
     try:
