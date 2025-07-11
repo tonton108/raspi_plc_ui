@@ -87,7 +87,7 @@ bash scp_bulk_push.sh
 自動で起動後、ラズパイのIPにブラウザでアクセスすると、設備設定画面が表示されます：
 
 ```
-http://<ラズパイのIP>:5000/equipment_config
+http://localhost:5000/equipment_config
 ```
 
 ここでPLCのIPやメーカー情報を入力してください。設定が保存されると、自動的にデータ収集・ログ保存が開始されます。
