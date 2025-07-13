@@ -7,28 +7,28 @@
   <!-- 初期描画前にダークモードを適用してチカチカ防止 -->
   <script>
     if (localStorage.getItem("theme") === "dark") {
-      document.documentElement.classList.add("dark-mode");
+      document.documentElement.classList.add("dark");
     }
   </script>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
   <!-- トースト通知用CSS -->
   <style>
     .toast {
       visibility: hidden;
-      min-width: 200px;
+      min-width: 240px;
       background-color: #323232;
       color: #fff;
       text-align: center;
       border-radius: 8px;
-      padding: 12px;
+      padding: 14px 20px;
       position: fixed;
       z-index: 9999;
       right: 20px;
       bottom: 30px;
-      font-size: 14px;
+      font-size: 16px;
       opacity: 0;
       transition: opacity 0.5s ease, bottom 0.5s ease;
     }
@@ -37,15 +37,33 @@
       opacity: 1;
       bottom: 50px;
     }
+
+    .theme-toggle-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      font-size: 1.1em;
+      border-radius: 8px;
+      background-color: var(--button-bg);
+      color: var(--text-color);
+      border: none;
+      cursor: pointer;
+      z-index: 10000;
+    }
+
+    .theme-toggle-btn:hover {
+      background-color: var(--button-hover);
+    }
   </style>
 </head>
 
-<body>
+<body class="">
   <!-- トースト通知本体 -->
   <div id="toast" class="toast">通知</div>
 
   <!-- テーマ切替ボタン -->
-  <button onclick="toggleTheme()" style="position: fixed; bottom: 20px; right: 20px;">
+  <button onclick="toggleTheme()" class="theme-toggle-btn">
     🌗 テーマ切替
   </button>
 
@@ -85,7 +103,6 @@
         document.body.classList.add('dark');
       }
 
-      // Flaskメッセージ表示（テンプレートから取得）
       const tmpl = document.getElementById("flask-messages");
       if (tmpl) {
         const content = tmpl.textContent;

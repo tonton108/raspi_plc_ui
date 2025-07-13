@@ -6,3 +6,4 @@ flask-migrate
 python-dotenv
 pymcprotocol
 pandas
+requests

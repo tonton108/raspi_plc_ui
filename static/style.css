@@ -1,5 +1,4 @@
 :root {
-  /* Light Theme */
   --background: #f4f4f4;
   --text-color: #333;
   --card-bg: #ffffff;
@@ -35,6 +34,7 @@ body.dark {
 
 body {
   font-family: 'Segoe UI', sans-serif;
+  font-size: 18px;
   margin: 0;
   padding: 0;
   background-color: var(--background);
@@ -48,27 +48,28 @@ body {
   justify-content: center;
   align-items: center;
   min-height: calc(100vh - 60px);
-  padding-top: 30px;
+  padding: 20px;
 }
 
 .monitor-card {
   background-color: var(--card-bg);
   border-radius: 16px;
-  padding: 32px;
-  width: 400px;
+  padding: 40px;
+  width: 90vw;
+  max-width: 500px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   transition: background-color 0.3s;
   text-align: center;
+  font-size: 1.2em;
 }
 
 .monitor-card h2 {
   margin-top: 0;
-  text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .monitor-card p {
-  margin: 8px 0;
+  margin: 12px 0;
 }
 
 .text-muted {
@@ -78,57 +79,44 @@ body {
 /* ステータスバッジ */
 .status-badge {
   display: inline-block;
-  padding: 4px 12px;
+  padding: 6px 16px;
   border-radius: 12px;
-  font-size: 0.9em;
+  font-size: 1em;
   font-weight: bold;
   color: #fff;
 }
 
-.status-badge.green {
-  background-color: var(--success);
-}
-
-.status-badge.red {
-  background-color: var(--error);
-}
-
-.status-badge.yellow {
-  background-color: var(--warning);
-}
-
-.status-badge.gray {
-  background-color: var(--neutral);
-}
+.status-badge.green { background-color: var(--success); }
+.status-badge.red { background-color: var(--error); }
+.status-badge.yellow { background-color: var(--warning); }
+.status-badge.gray { background-color: var(--neutral); }
 
 /* ボタン */
 .btn, .v-btn {
   display: inline-block;
-  padding: 10px 16px;
+  padding: 14px 20px;
   background-color: var(--button-bg);
-  border-radius: 8px;
+  border-radius: 10px;
   text-decoration: none;
   color: var(--text-color);
   margin-top: 16px;
   text-align: center;
-  width: auto;
-  min-width: 140px;
-  transition: background-color 0.2s;
-  border: none;
+  min-width: 160px;
+  font-size: 1.2em;
   font-weight: 500;
   cursor: pointer;
+  border: none;
+  transition: background-color 0.2s;
 }
 
 .btn:hover, .v-btn:hover {
   background-color: var(--button-hover);
 }
 
-/* 特定ボタンスタイル */
 .v-btn.primary {
   background-color: var(--primary);
   color: white;
 }
-
 .v-btn.primary:hover {
   background-color: var(--primary-hover);
 }
@@ -137,55 +125,53 @@ body {
   background-color: var(--secondary);
   color: white;
 }
-
 .v-btn.secondary:hover {
   background-color: var(--secondary-hover);
-}
-
-/* ステータス表示 */
-.status {
-  font-weight: bold;
-  padding: 3px 8px;
-  border-radius: 12px;
-}
-
-.status.ok {
-  background-color: var(--success);
-  color: white;
-}
-
-.status.warning {
-  background-color: var(--warning);
-  color: black;
-}
-
-.status.error {
-  background-color: var(--error);
-  color: white;
-}
-
-.status.unknown {
-  background-color: var(--neutral);
-  color: white;
-}
-
-/* ボタングループ */
-.button-group, .v-actions {
-  margin-top: 20px;
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-/* テーマ切り替え用 */
-.theme-toggle {
-  margin-top: 30px;
-  text-align: center;
 }
 
 .btn:disabled {
   background-color: var(--border-color);
   color: var(--neutral);
   cursor: not-allowed;
+}
+
+/* ステータス表示 */
+.status {
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.status.ok { background-color: var(--success); color: white; }
+.status.warning { background-color: var(--warning); color: black; }
+.status.error { background-color: var(--error); color: white; }
+.status.unknown { background-color: var(--neutral); color: white; }
+
+/* ボタングループ */
+.button-group, .v-actions {
+  margin-top: 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* トースト */
+#toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--primary);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1em;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 999;
+}
+
+#toast.show {
+  opacity: 1;
 }

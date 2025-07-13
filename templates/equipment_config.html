@@ -9,7 +9,7 @@
     <form method="post" class="form-grid">
       <div class="form-group">
         <label for="equipment_id"><strong>設備ID:</strong></label>
-        <input type="text" id="equipment_id" name="equipment_id" value="{{ current.equipment_id or '' }}" required>
+        <input type="text" id="equipment_id" name="equipment_id" value="{{ current.equipment_id if current else '' }}" required>
       </div>
 
       <div class="form-group">
@@ -32,7 +32,7 @@
 
       <div class="form-group">
         <label for="ip"><strong>IPアドレス:</strong></label>
-        <input type="text" id="ip" name="ip" value="{{ current.ip or '' }}" required>
+        <input type="text" id="ip" name="ip" value="{{ current.ip if current else '' }}" required>
       </div>
 
       <div class="form-group">
@@ -46,8 +46,8 @@
       </div>
 
       <div class="button-group">
-        <button type="submit" class="btn save">💾 保存</button>
-        <a href="/" class="btn back">← 戻る</a>
+        <button type="submit" class="btn primary">💾 保存</button>
+        <a href="/monitoring" class="btn secondary">← 戻る</a>
       </div>
     </form>
   </div>
@@ -93,6 +93,4 @@
     });
   });
 </script>
-
-  
 {% endblock %}

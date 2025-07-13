@@ -4,7 +4,7 @@
 <div class="container">
   <div class="monitor-card">
     <h2>📊 モニタリング</h2>
-    <p><strong>設備ID:</strong> {{ equipment.id }}</p>
+    <p><strong>設備ID:</strong> {{ equipment["equipment_id"] }}</p>
     <p><strong>メーカー:</strong> {{ equipment.manufacturer or 'N/A' }}</p>
     <p><strong>接続先:</strong> {{ equipment.ip }}:{{ equipment.port }}</p>
     <p><strong>サイクルタイム:</strong> <span id="cycle-time">N/A</span></p>
@@ -12,12 +12,14 @@
 
     <div class="button-group">
       <button onclick="testConnection()" class="btn primary">🔌 接続テスト</button>
-      <a href="{{ url_for('equipment_config', equipment_id=equipment.id) }}" class="btn settings">⚙️ 設定変更</a>
+      <a href="{{ url_for('equipment_config') }}" class="btn settings">⚙️ 設定変更</a>
     </div>
   </div>
 </div>
 
 <script>
+  let lastTimestamp = null;
+
   function updateMonitoringData() {
     fetch('/api/logs')
       .then(res => {
@@ -29,13 +31,13 @@
       .then(data => {
         const now = new Date();
         const ts = new Date(data.timestamp);
-  
+
         const cycleTime = lastTimestamp ? now - lastTimestamp : null;
         lastTimestamp = now;
-  
+
         if (cycleTime !== null) {
           document.getElementById("cycle-time").textContent = `${cycleTime} ms`;
-  
+
           const statusEl = document.getElementById("equipment-status");
           if (cycleTime > 3000) {
             statusEl.textContent = "停止";
@@ -54,7 +56,7 @@
         statusEl.className = "status-badge gray";
       });
   }
-  
+
   function showToast(message) {
     const toast = document.getElementById("toast");
     toast.textContent = message;
@@ -68,25 +70,24 @@
     showToast("接続中…");
 
     try {
-      const response = await fetch("/test-connection", {
-        method: "POST"
-      });
-
+      const response = await fetch("/test-connection", { method: "POST" });
       const result = await response.json();
+
       if (result.success) {
         showToast("接続に成功しました。");
       } else {
         showToast("接続に失敗しました。");
       }
 
-      // ページ更新で「状態：稼働中／停止」を反映
-      setTimeout(() => {
-        location.reload();
-      }, 1500);
+      setTimeout(() => location.reload(), 1500);
 
     } catch (error) {
       showToast("エラーが発生しました。");
     }
   }
+
+  // データを一定間隔で更新
+  setInterval(updateMonitoringData, 3000);
+  updateMonitoringData();
 </script>
 {% endblock %}
