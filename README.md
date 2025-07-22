@@ -142,3 +142,6 @@ flowchart TD
 
 - 初回：scp_bulk_push.sh 実行時に systemd 登録 + Docker 起動まで行います。
 - 再起動：ラズパイの電源ON時、自動的に `plc_ui.service` → Docker → Flask が起動します。
+
+ラズパイへのデプロイ
+scp プロジェクトパス ラズパイパス

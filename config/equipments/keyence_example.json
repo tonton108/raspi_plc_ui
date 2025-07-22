@@ -1,0 +1,78 @@
+{
+  "equipment_id": "KV-1",
+  "plc_ip": "192.168.1.105",
+  "plc_port": 8501,
+  "modbus_port": 502,
+  "manufacturer": "キーエンス",
+  "series": "KV-8000",
+  "interval": 1000,
+  "central_server_ip": "192.168.1.100",
+  "central_server_port": 5000,
+  "data_points": {
+    "production_count": {
+      "address": "DM150",
+      "data_type": "dword",
+      "scale": 1,
+      "enabled": true,
+      "comment": "生産カウンタ（32bit整数）"
+    },
+    "current": {
+      "address": "DM100",
+      "data_type": "word",
+      "scale": 10,
+      "enabled": true,
+      "comment": "電流値（16bit、スケール1/10）"
+    },
+    "temperature": {
+      "address": "DM101",
+      "data_type": "float32",
+      "scale": 1,
+      "enabled": true,
+      "comment": "温度（32bit浮動小数点）"
+    },
+    "pressure": {
+      "address": "DM102",
+      "data_type": "word",
+      "scale": 100,
+      "enabled": true,
+      "comment": "圧力（16bit、スケール1/100）"
+    },
+    "motor_running": {
+      "address": "R100",
+      "data_type": "bit",
+      "scale": 1,
+      "enabled": true,
+      "comment": "モーター運転状態（リレービット）"
+    },
+    "alarm_active": {
+      "address": "R101.5",
+      "data_type": "bit",
+      "scale": 1,
+      "enabled": true,
+      "comment": "アラーム状態（リレーR101の5ビット目）"
+    },
+    "internal_flag": {
+      "address": "MR200",
+      "data_type": "bit",
+      "scale": 1,
+      "enabled": false,
+      "comment": "内部フラグ（内部リレー）"
+    }
+  },
+  "keyence_modbus_settings": {
+    "note": "キーエンスPLCのModbus/TCP設定について",
+    "modbus_setup": "PLCのModbus/TCP機能を有効にする必要があります",
+    "default_port": 502,
+    "supported_functions": [
+      "Read Coils (01)",
+      "Read Holding Registers (03)",
+      "Write Single Coil (05)",
+      "Write Single Register (06)"
+    ],
+    "address_mapping": {
+      "DM (Data Memory)": "Holding Registers 40001-",
+      "R (Relay)": "Coils 00001-",
+      "MR (Internal Relay)": "Coils 10001-"
+    }
+  }
+} 

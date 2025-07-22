@@ -1,0 +1,53 @@
+{
+  "equipment_id": "EP_TEST_CONFIG123378",
+  "plc_ip": "192.168.0.100",
+  "plc_port": 5001,
+  "modbus_port": 502,
+  "manufacturer": "三菱",
+  "series": "FX",
+  "interval": 2000,
+  "central_server_ip": "192.168.0.100",
+  "central_server_port": 5000,
+  "mac_address": "a7:cb:75:e8:1e:fb",
+  "cpu_serial_number": "FALLBACK_FIXED_ID",
+  "hostname": "DESKTOP-K88UM9J",
+  "raspi_ip": "192.168.0.100",
+  "data_points": {
+    "production_count": {
+      "address": "D150",
+      "data_type": "word",
+      "scale": 1,
+      "enabled": true
+    },
+    "current": {
+      "address": "D100",
+      "data_type": "word",
+      "scale": 10,
+      "enabled": true
+    },
+    "temperature": {
+      "address": "D101",
+      "data_type": "float32",
+      "scale": 1,
+      "enabled": true
+    },
+    "pressure": {
+      "address": "D102",
+      "data_type": "word",
+      "scale": 100,
+      "enabled": true
+    },
+    "cycle_time": {
+      "address": "D200",
+      "data_type": "dword",
+      "scale": 1,
+      "enabled": true
+    },
+    "error_code": {
+      "address": "D300",
+      "data_type": "word",
+      "scale": 1,
+      "enabled": true
+    }
+  }
+}

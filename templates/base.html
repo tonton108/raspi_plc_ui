@@ -1,118 +1,31 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}PLC UI{% endblock %}</title>
-
-  <!-- 初期描画前にダークモードを適用してチカチカ防止 -->
-  <script>
-    if (localStorage.getItem("theme") === "dark") {
-      document.documentElement.classList.add("dark");
-    }
-  </script>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
-  <!-- トースト通知用CSS -->
-  <style>
-    .toast {
-      visibility: hidden;
-      min-width: 240px;
-      background-color: #323232;
-      color: #fff;
-      text-align: center;
-      border-radius: 8px;
-      padding: 14px 20px;
-      position: fixed;
-      z-index: 9999;
-      right: 20px;
-      bottom: 30px;
-      font-size: 16px;
-      opacity: 0;
-      transition: opacity 0.5s ease, bottom 0.5s ease;
-    }
-    .toast.show {
-      visibility: visible;
-      opacity: 1;
-      bottom: 50px;
-    }
-
-    .theme-toggle-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 12px 16px;
-      font-size: 1.1em;
-      border-radius: 8px;
-      background-color: var(--button-bg);
-      color: var(--text-color);
-      border: none;
-      cursor: pointer;
-      z-index: 10000;
-    }
-
-    .theme-toggle-btn:hover {
-      background-color: var(--button-hover);
-    }
-  </style>
+  
+  <!-- 📱 ラズパイ専用のシンプルCSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=4">
 </head>
 
-<body class="">
-  <!-- トースト通知本体 -->
-  <div id="toast" class="toast">通知</div>
-
-  <!-- テーマ切替ボタン -->
-  <button onclick="toggleTheme()" class="theme-toggle-btn">
-    🌗 テーマ切替
-  </button>
-
+<body class="{{ 'dark' if request.cookies.get('theme') == 'dark' else '' }}">
   <div class="container">
     {% block content %}{% endblock %}
   </div>
 
-  <!-- Flaskのflashメッセージを埋め込む（script内で評価） -->
-  <script type="text/template" id="flask-messages">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          showToast("{{ message }}");
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-  </script>
+  <!-- 🌗 テーマ切替ボタン -->
+  <button onclick="toggleTheme()" class="theme-toggle">🌗</button>
+  
+  <!-- 📢 トースト通知 -->
+  <div id="toast"></div>
 
-  <!-- テーマ切替 & トースト通知JS -->
   <script>
     function toggleTheme() {
-      document.body.classList.toggle('dark');
-      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+      const body = document.body;
+      const darkMode = body.classList.toggle("dark");
+      document.cookie = `theme=${darkMode ? 'dark' : 'light'}; path=/; max-age=31536000`;
     }
-
-    function showToast(message) {
-      const toast = document.getElementById("toast");
-      toast.textContent = message;
-      toast.classList.add("show");
-      setTimeout(() => {
-        toast.classList.remove("show");
-      }, 3000);
-    }
-
-    window.onload = () => {
-      if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark');
-      }
-
-      const tmpl = document.getElementById("flask-messages");
-      if (tmpl) {
-        const content = tmpl.textContent;
-        try {
-          eval(content);
-        } catch (e) {
-          console.warn("トーストの評価に失敗:", e);
-        }
-      }
-    };
   </script>
 </body>
 </html>

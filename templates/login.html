@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン - RasPi PLC Monitor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary), var(--success));
+        }
+        
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            width: 400px;
+            max-width: 90vw;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-header h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .login-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .error-message {
+            background: #ffe6e6;
+            color: #d32f2f;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #d32f2f;
+        }
+        
+        .system-info {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .security-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="security-icon">🔐</div>
+                <h1>PLC監視システム</h1>
+                <p>認証が必要です</p>
+            </div>
+            
+            {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+            {% endif %}
+            
+            <form method="post">
+                <div class="form-group">
+                    <label for="username">ユーザー名:</label>
+                    <input type="text" id="username" name="username" required autofocus>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">パスワード:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <button type="submit" class="login-btn">ログイン</button>
+            </form>
+            
+            <div class="system-info">
+                <p>🏭 Raspberry Pi PLC UI</p>
+                <p>製造ライン監視システム</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

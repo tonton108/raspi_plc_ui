@@ -1,9 +1,13 @@
 flask==3.1.1
+flask-sqlalchemy==3.1.1
+flask-socketio==5.3.6
 psycopg2-binary
 sqlalchemy
-flask_sqlalchemy
 flask-migrate
 python-dotenv
 pymcprotocol
+fins
+python-snap7
+pymodbus
 pandas
 requests
