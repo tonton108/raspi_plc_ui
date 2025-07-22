@@ -46,7 +46,7 @@
 <div id="config-modal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>🔧 設備設定</h2>
+      <h2>🔧 設定変更</h2>
       <button class="modal-close" onclick="closeConfigModal()">&times;</button>
     </div>
     
@@ -625,6 +625,7 @@ body.dark .error-message {
     
     passwordModal.style.display = 'block';
     confirmPasswordInput.value = '';
+    confirmPasswordInput.type = 'text'; // 初期状態はtextタイプ
     passwordError.style.display = 'none';
     document.body.style.overflow = 'hidden';
     setTimeout(() => confirmPasswordInput.focus(), 100);
@@ -638,6 +639,7 @@ body.dark .error-message {
     
     passwordModal.style.display = 'none';
     confirmPasswordInput.value = '';
+    confirmPasswordInput.type = 'text'; // textタイプに戻す
     passwordError.style.display = 'none';
     document.body.style.overflow = 'auto';
   }
@@ -655,6 +657,24 @@ body.dark .error-message {
     passwordError.textContent = message;
     passwordError.style.display = 'block';
   }
+
+  // パスワードフィールドの動的制御
+  document.getElementById('confirmPassword').addEventListener('focus', function() {
+    // フォーカス時にパスワードタイプに変更
+    this.type = 'password';
+  });
+
+  document.getElementById('confirmPassword').addEventListener('blur', function() {
+    // フォーカスを失った時、値が空ならtextタイプに戻す
+    if (!this.value) {
+      this.type = 'text';
+    }
+  });
+
+  document.getElementById('confirmPassword').addEventListener('input', function() {
+    // 入力がある場合はパスワードタイプを維持
+    this.type = 'password';
+  });
 
   // パスワード確認フォームの送信処理
   document.getElementById('passwordForm').addEventListener('submit', async function(e) {
@@ -765,7 +785,7 @@ body.dark .error-message {
       });
       
       if (!configResponse.ok) {
-        throw new Error('設備設定の保存に失敗しました');
+        throw new Error('設定の保存に失敗しました');
       }
       
       // 2. PLCデータ設定を保存

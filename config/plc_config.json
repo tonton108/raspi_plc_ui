@@ -8,7 +8,7 @@
   "interval": 2000,
   "central_server_ip": "192.168.0.100",
   "central_server_port": 5000,
-  "mac_address": "a7:cb:75:e8:1e:fb",
+  "mac_address": "d9:12:85:da:88:5b",
   "cpu_serial_number": "FALLBACK_FIXED_ID",
   "hostname": "DESKTOP-K88UM9J",
   "raspi_ip": "192.168.0.100",

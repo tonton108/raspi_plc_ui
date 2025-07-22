@@ -64,9 +64,19 @@ register_routes(app, socketio)
 
 # 認証設定
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH", 
-    hashlib.sha256("admin123".encode()).hexdigest())  # デフォルト: admin123
-REQUIRE_AUTH = os.getenv("REQUIRE_AUTH", "false").lower() == "true"
+DEFAULT_ADMIN_PASSWORD_HASH = hashlib.sha256("admin123".encode()).hexdigest()  # デフォルト: admin123
+REQUIRE_AUTH = os.getenv("REQUIRE_AUTH", "true").lower() == "true"  # デフォルトで認証必須に変更
+
+def get_current_admin_password_hash():
+    """現在の管理者パスワードハッシュを取得（ローカル設定優先）"""
+    config_manager = ConfigManager()
+    local_hash = config_manager.get_admin_password_hash()
+    
+    if local_hash:
+        return local_hash
+    
+    # ローカル設定がない場合は環境変数またはデフォルトを使用
+    return os.getenv("ADMIN_PASSWORD_HASH", DEFAULT_ADMIN_PASSWORD_HASH)
 
 def hash_password(password):
     """パスワードをハッシュ化"""
@@ -91,7 +101,7 @@ def login():
         password = request.form.get("password", "")
         
         if (username == ADMIN_USERNAME and 
-            hash_password(password) == ADMIN_PASSWORD_HASH):
+            hash_password(password) == get_current_admin_password_hash()):
             session['authenticated'] = True
             session['username'] = username
             return redirect(url_for('index'))
@@ -134,17 +144,84 @@ manufacturers = list(series_list.keys())
 @app.route("/")
 @require_auth
 def index():
-    return redirect(url_for("equipment_config"))
+    """ログイン後の自動分岐：DB確認 → CPUシリアル番号で設備検索 → 適切な画面へ遷移"""
+    try:
+        from db_utils import get_cpu_serial_number, get_mac_address, get_ip_address
+        
+        # デバイス情報を取得
+        cpu_serial_number = get_cpu_serial_number()
+        mac_address = get_mac_address()
+        ip_address = get_ip_address()
+        
+        print(f"🔍 [自動分岐] デバイス情報取得完了")
+        print(f"   CPUシリアル番号: {cpu_serial_number}")
+        print(f"   MACアドレス: {mac_address}")
+        print(f"   IPアドレス: {ip_address}")
+        
+        # DB APIで設備検索（CPUシリアル番号最優先）
+        db_api = config.config_manager.db_api
+        equipment_info = None
+        search_method = "なし"
+        
+        # 1. CPUシリアル番号で検索（最優先・最も確実）
+        if cpu_serial_number:
+            print(f"🔍 [自動分岐] CPUシリアル番号 '{cpu_serial_number}' で設備検索中...")
+            equipment_info = db_api.get_equipment_by_device_info(cpu_serial_number=cpu_serial_number)
+            if equipment_info:
+                search_method = "CPUシリアル番号"
+                print(f"✅ [自動分岐] CPUシリアル番号で設備発見: {equipment_info.get('equipment_id')}")
+        
+        # 2. CPUシリアル番号で見つからない場合、MACアドレスで検索
+        if not equipment_info and mac_address:
+            print(f"🔍 [自動分岐] MACアドレス '{mac_address}' で設備検索中...")
+            equipment_info = db_api.get_equipment_by_device_info(mac_address=mac_address)
+            if equipment_info:
+                search_method = "MACアドレス"
+                print(f"✅ [自動分岐] MACアドレスで設備発見: {equipment_info.get('equipment_id')}")
+        
+        # 3. MACアドレスでも見つからない場合、IPアドレスで検索
+        if not equipment_info and ip_address:
+            print(f"🔍 [自動分岐] IPアドレス '{ip_address}' で設備検索中...")
+            equipment_info = db_api.get_equipment_by_device_info(ip_address=ip_address)
+            if equipment_info:
+                search_method = "IPアドレス"
+                print(f"✅ [自動分岐] IPアドレスで設備発見: {equipment_info.get('equipment_id')}")
+        
+        # 分岐判定
+        if equipment_info:
+            equipment_id = equipment_info.get('equipment_id')
+            print(f"🎯 [自動分岐] 設備発見 → モニタリング画面へ遷移")
+            print(f"   設備ID: {equipment_id}")
+            print(f"   検索方法: {search_method}")
+            print(f"   製造元: {equipment_info.get('manufacturer', '未設定')}")
+            print(f"   シリーズ: {equipment_info.get('series', '未設定')}")
+            
+            # 設備IDをローカル設定に保存（plc_agent用）
+            config.config_manager.save_equipment_id(equipment_id)
+            print(f"📝 [自動分岐] 設備ID '{equipment_id}' をローカル設定に保存しました")
+            
+            return redirect(url_for("monitoring"))
+        else:
+            print(f"❌ [自動分岐] 設備未発見 → 初期設定画面へ遷移")
+            print(f"💡 [自動分岐] 設備登録が必要です")
+            return redirect(url_for("initial_setup"))
+            
+    except Exception as e:
+        print(f"❌ [自動分岐] エラー発生: {e}")
+        print(f"🔄 [自動分岐] エラーのため初期設定画面へ遷移")
+        return redirect(url_for("initial_setup"))
 
-@app.route("/equipment_config", methods=["GET", "POST"])
+@app.route("/initial_setup", methods=["GET", "POST"])
 @require_auth
-def equipment_config():
+def initial_setup():
     if request.method == "POST":
         # デバイス情報を自動取得
         mac_address = get_mac_address()
         ip_address = get_ip_address()
         cpu_serial_number = get_cpu_serial_number()
         hostname = socket.gethostname()
+        
+
         
         # 基本PLC設定（デバイス情報を追加）
         plc_data = {
@@ -300,7 +377,7 @@ def equipment_config():
         
         return redirect(url_for("monitoring"))
     
-    # GET: 現在の設定を表示
+    # GET: 初期設定画面を表示（設備ID未設定時または初回セットアップ時）
     current = config.load_plc_config()
     current.setdefault("central_server_ip", config.central_server_ip)
     current.setdefault("central_server_port", config.central_server_port)
@@ -317,7 +394,7 @@ def equipment_config():
             "error_code": {"address": "D300", "scale": 1, "enabled": False}
         }
     
-    return render_template("equipment_config.html", 
+    return render_template("initial_setup.html", 
                          equipment=current, 
                          series_list=series_list, 
                          manufacturers=manufacturers)
@@ -327,9 +404,9 @@ def equipment_config():
 def monitoring():
     current_config = config.load_plc_config()
     
-    # 設備IDが未設定の場合は設定画面にリダイレクト
+    # 設備IDが未設定の場合は初期設定画面にリダイレクト
     if not current_config.get("equipment_id"):
-        return redirect(url_for("equipment_config"))
+        return redirect(url_for("initial_setup"))
     
     # data_pointsのデフォルト値を設定（モーダル用）
     if "data_points" not in current_config:
@@ -419,7 +496,7 @@ def verify_password():
     password = data.get("password", "")
     
     # 現在ログインしているユーザーのパスワードと照合
-    if hash_password(password) == ADMIN_PASSWORD_HASH:
+    if hash_password(password) == get_current_admin_password_hash():
         return jsonify({"success": True})
     else:
         return jsonify({"success": False, "error": "パスワードが正しくありません"})

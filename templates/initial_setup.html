@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% block title %}初期設定{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="monitor-card">
+    <h2>🚀 初期設定</h2>
+    
+    {% if error %}
+    <div style="background-color: #ffebee; border: 1px solid #f44336; border-radius: 4px; padding: 12px; margin-bottom: 16px; color: #c62828;">
+      <strong>❌ エラー:</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    {% if success %}
+    <div style="background-color: #e8f5e8; border: 1px solid #4caf50; border-radius: 4px; padding: 12px; margin-bottom: 16px; color: #2e7d32;">
+      <strong>✅ 成功:</strong> {{ success }}
+    </div>
+    {% endif %}
+
+    <form method="post" class="form-grid">
+      <!-- 基本設定セクション -->
+      <div class="form-section">
+        <h3 style="color: var(--primary); margin-bottom: 16px;">🏭 基本設定</h3>
+        
+        <div class="basic-config-grid">
+          <div class="form-group">
+            <label><strong>設備ID:</strong></label>
+            <input type="text" name="equipment_id" value="{{ equipment.equipment_id or '' }}" required>
+          </div>
+
+          <div class="form-group">
+            <label><strong>PLCメーカー:</strong></label>
+            <select name="manufacturer" id="manufacturer" required>
+              {% for m in manufacturers %}
+                <option value="{{ m }}" {% if equipment.manufacturer == m %}selected{% endif %}>{{ m }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label><strong>シリーズ:</strong></label>
+            <select name="series" id="series" required>
+              {% for s in series_list.get(equipment.manufacturer or '', []) %}
+                <option value="{{ s }}" {% if equipment.series == s %}selected{% endif %}>{{ s }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label><strong>🎯 PLC IPアドレス:</strong></label>
+            <input type="text" name="plc_ip" value="{{ equipment.plc_ip or '192.168.1.100' }}" 
+                   placeholder="例: 192.168.1.100" required>
+          </div>
+
+          <div class="form-group">
+            <label><strong>PLCポート:</strong></label>
+            <input type="number" name="plc_port" value="{{ equipment.plc_port or 5000 }}" required>
+          </div>
+
+          <div class="form-group">
+            <label><strong>🌐 中央サーバーIP:</strong></label>
+            <input type="text" name="central_server_ip" value="{{ equipment.central_server_ip or '192.168.1.10' }}" 
+                   placeholder="例: 192.168.1.10" required>
+          </div>
+
+          <div class="form-group">
+            <label><strong>中央サーバーポート:</strong></label>
+            <input type="number" name="central_server_port" value="{{ equipment.central_server_port or 5000 }}" required>
+          </div>
+
+          <div class="form-group">
+            <label><strong>取得間隔 (ms):</strong></label>
+            <input type="number" name="interval" value="{{ equipment.interval or 1000 }}" required>
+          </div>
+
+          <div class="form-group">
+            <label><strong>🔌 Modbusポート:</strong> <small style="color: #666;">※キーエンスPLC使用時のみ必要</small></label>
+            <input type="number" name="modbus_port" value="{{ equipment.modbus_port or 502 }}" 
+                   placeholder="キーエンス用 (デフォルト: 502)">
+          </div>
+        </div>
+      </div>
+
+      <!-- PLCアドレス設定セクション -->
+      <div class="form-section">
+        <h3 style="color: var(--primary); margin: 20px 0 16px 0;">📍 PLCデータ項目設定</h3>
+        
+        <div class="data-config-section">
+          <div class="plc-config-grid">
+            
+            <!-- 生産数量 -->
+            <div class="plc-config-item">
+              <label class="plc-config-toggle">
+                <input type="checkbox" name="production_count_enabled" value="true" 
+                       {% if equipment.data_points and equipment.data_points.production_count and equipment.data_points.production_count.enabled %}checked{% endif %}>
+                <span class="plc-icon">📊</span>
+                <strong>生産数量</strong>
+              </label>
+              <div class="plc-config-inputs">
+                <input type="text" name="production_count_address" 
+                       value="{{ equipment.data_points.production_count.address if equipment.data_points and equipment.data_points.production_count else 'D150' }}" 
+                       placeholder="D150">
+                <select name="production_count_data_type" class="data-type-select">
+                  <option value="word" {% if equipment.data_points and equipment.data_points.production_count and equipment.data_points.production_count.data_type == 'word' %}selected{% elif not equipment.data_points or not equipment.data_points.production_count %}selected{% endif %}>Word (16bit)</option>
+                  <option value="dword" {% if equipment.data_points and equipment.data_points.production_count and equipment.data_points.production_count.data_type == 'dword' %}selected{% endif %}>DWord (32bit)</option>
+                  <option value="float32" {% if equipment.data_points and equipment.data_points.production_count and equipment.data_points.production_count.data_type == 'float32' %}selected{% endif %}>Float32</option>
+                  <option value="bit" {% if equipment.data_points and equipment.data_points.production_count and equipment.data_points.production_count.data_type == 'bit' %}selected{% endif %}>Bit</option>
+                </select>
+                <input type="number" name="production_count_scale" 
+                       value="{{ equipment.data_points.production_count.scale if equipment.data_points and equipment.data_points.production_count else 1 }}" 
+                       placeholder="倍率" min="1">
+              </div>
+            </div>
+
+            <!-- 電流 -->
+            <div class="plc-config-item">
+              <label class="plc-config-toggle">
+                <input type="checkbox" name="current_enabled" value="true" 
+                       {% if equipment.data_points and equipment.data_points.current and equipment.data_points.current.enabled %}checked{% else %}checked{% endif %}>
+                <span class="plc-icon">⚡</span>
+                <strong>電流</strong>
+              </label>
+              <div class="plc-config-inputs">
+                <input type="text" name="current_address" 
+                       value="{{ equipment.data_points.current.address if equipment.data_points and equipment.data_points.current else 'D100' }}" 
+                       placeholder="D100">
+                <select name="current_data_type" class="data-type-select">
+                  <option value="word" {% if equipment.data_points and equipment.data_points.current and equipment.data_points.current.data_type == 'word' %}selected{% endif %}>Word (16bit)</option>
+                  <option value="dword" {% if equipment.data_points and equipment.data_points.current and equipment.data_points.current.data_type == 'dword' %}selected{% endif %}>DWord (32bit)</option>
+                  <option value="float32" {% if equipment.data_points and equipment.data_points.current and equipment.data_points.current.data_type == 'float32' %}selected{% endif %}>Float32</option>
+                  <option value="bit" {% if equipment.data_points and equipment.data_points.current and equipment.data_points.current.data_type == 'bit' %}selected{% endif %}>Bit</option>
+                </select>
+                <input type="number" name="current_scale" 
+                       value="{{ equipment.data_points.current.scale if equipment.data_points and equipment.data_points.current else 10 }}" 
+                       placeholder="倍率" min="1">
+              </div>
+            </div>
+
+            <!-- 温度 -->
+            <div class="plc-config-item">
+              <label class="plc-config-toggle">
+                <input type="checkbox" name="temperature_enabled" value="true" 
+                       {% if equipment.data_points and equipment.data_points.temperature and equipment.data_points.temperature.enabled %}checked{% else %}checked{% endif %}>
+                <span class="plc-icon">🌡️</span>
+                <strong>温度</strong>
+              </label>
+              <div class="plc-config-inputs">
+                <input type="text" name="temperature_address" 
+                       value="{{ equipment.data_points.temperature.address if equipment.data_points and equipment.data_points.temperature else 'D101' }}" 
+                       placeholder="D101">
+                <select name="temperature_data_type" class="data-type-select">
+                  <option value="word" {% if equipment.data_points and equipment.data_points.temperature and equipment.data_points.temperature.data_type == 'word' %}selected{% endif %}>Word (16bit)</option>
+                  <option value="dword" {% if equipment.data_points and equipment.data_points.temperature and equipment.data_points.temperature.data_type == 'dword' %}selected{% endif %}>DWord (32bit)</option>
+                  <option value="float32" {% if equipment.data_points and equipment.data_points.temperature and equipment.data_points.temperature.data_type == 'float32' %}selected{% elif not equipment.data_points or not equipment.data_points.temperature %}selected{% endif %}>Float32</option>
+                  <option value="bit" {% if equipment.data_points and equipment.data_points.temperature and equipment.data_points.temperature.data_type == 'bit' %}selected{% endif %}>Bit</option>
+                </select>
+                <input type="number" name="temperature_scale" 
+                       value="{{ equipment.data_points.temperature.scale if equipment.data_points and equipment.data_points.temperature else 1 }}" 
+                       placeholder="倍率" min="1">
+              </div>
+            </div>
+
+            <!-- 圧力 -->
+            <div class="plc-config-item">
+              <label class="plc-config-toggle">
+                <input type="checkbox" name="pressure_enabled" value="true" 
+                       {% if equipment.data_points and equipment.data_points.pressure and equipment.data_points.pressure.enabled %}checked{% else %}checked{% endif %}>
+                <span class="plc-icon">🔧</span>
+                <strong>圧力</strong>
+              </label>
+              <div class="plc-config-inputs">
+                <input type="text" name="pressure_address" 
+                       value="{{ equipment.data_points.pressure.address if equipment.data_points and equipment.data_points.pressure else 'D102' }}" 
+                       placeholder="D102">
+                <select name="pressure_data_type" class="data-type-select">
+                  <option value="word" {% if equipment.data_points and equipment.data_points.pressure and equipment.data_points.pressure.data_type == 'word' %}selected{% elif not equipment.data_points or not equipment.data_points.pressure %}selected{% endif %}>Word (16bit)</option>
+                  <option value="dword" {% if equipment.data_points and equipment.data_points.pressure and equipment.data_points.pressure.data_type == 'dword' %}selected{% endif %}>DWord (32bit)</option>
+                  <option value="float32" {% if equipment.data_points and equipment.data_points.pressure and equipment.data_points.pressure.data_type == 'float32' %}selected{% endif %}>Float32</option>
+                  <option value="bit" {% if equipment.data_points and equipment.data_points.pressure and equipment.data_points.pressure.data_type == 'bit' %}selected{% endif %}>Bit</option>
+                </select>
+                <input type="number" name="pressure_scale" 
+                       value="{{ equipment.data_points.pressure.scale if equipment.data_points and equipment.data_points.pressure else 100 }}" 
+                       placeholder="倍率" min="1">
+              </div>
+            </div>
+
+            <!-- サイクルタイム -->
+            <div class="plc-config-item">
+              <label class="plc-config-toggle">
+                <input type="checkbox" name="cycle_time_enabled" value="true" 
+                       {% if equipment.data_points and equipment.data_points.cycle_time and equipment.data_points.cycle_time.enabled %}checked{% else %}checked{% endif %}>
+                <span class="plc-icon">⏱️</span>
+                <strong>サイクルタイム</strong>
+              </label>
+              <div class="plc-config-inputs">
+                <input type="text" name="cycle_time_address" 
+                       value="{{ equipment.data_points.cycle_time.address if equipment.data_points and equipment.data_points.cycle_time else 'D200' }}" 
+                       placeholder="D200">
+                <select name="cycle_time_data_type" class="data-type-select">
+                  <option value="word" {% if equipment.data_points and equipment.data_points.cycle_time and equipment.data_points.cycle_time.data_type == 'word' %}selected{% endif %}>Word (16bit)</option>
+                  <option value="dword" {% if equipment.data_points and equipment.data_points.cycle_time and equipment.data_points.cycle_time.data_type == 'dword' %}selected{% elif not equipment.data_points or not equipment.data_points.cycle_time %}selected{% endif %}>DWord (32bit)</option>
+                  <option value="float32" {% if equipment.data_points and equipment.data_points.cycle_time and equipment.data_points.cycle_time.data_type == 'float32' %}selected{% endif %}>Float32</option>
+                  <option value="bit" {% if equipment.data_points and equipment.data_points.cycle_time and equipment.data_points.cycle_time.data_type == 'bit' %}selected{% endif %}>Bit</option>
+                </select>
+                <input type="number" name="cycle_time_scale" 
+                       value="{{ equipment.data_points.cycle_time.scale if equipment.data_points and equipment.data_points.cycle_time else 1 }}" 
+                       placeholder="倍率" min="1">
+              </div>
+            </div>
+
+            <!-- エラーコード -->
+            <div class="plc-config-item">
+              <label class="plc-config-toggle">
+                <input type="checkbox" name="error_code_enabled" value="true" 
+                       {% if equipment.data_points and equipment.data_points.error_code and equipment.data_points.error_code.enabled %}checked{% else %}checked{% endif %}>
+                <span class="plc-icon">⚠️</span>
+                <strong>エラーコード</strong>
+              </label>
+              <div class="plc-config-inputs">
+                <input type="text" name="error_code_address" 
+                       value="{{ equipment.data_points.error_code.address if equipment.data_points and equipment.data_points.error_code else 'D300' }}" 
+                       placeholder="D300">
+                <select name="error_code_data_type" class="data-type-select">
+                  <option value="word" {% if equipment.data_points and equipment.data_points.error_code and equipment.data_points.error_code.data_type == 'word' %}selected{% elif not equipment.data_points or not equipment.data_points.error_code %}selected{% endif %}>Word (16bit)</option>
+                  <option value="dword" {% if equipment.data_points and equipment.data_points.error_code and equipment.data_points.error_code.data_type == 'dword' %}selected{% endif %}>DWord (32bit)</option>
+                  <option value="float32" {% if equipment.data_points and equipment.data_points.error_code and equipment.data_points.error_code.data_type == 'float32' %}selected{% endif %}>Float32</option>
+                  <option value="bit" {% if equipment.data_points and equipment.data_points.error_code and equipment.data_points.error_code.data_type == 'bit' %}selected{% endif %}>Bit</option>
+                </select>
+                <input type="number" name="error_code_scale" 
+                       value="{{ equipment.data_points.error_code.scale if equipment.data_points and equipment.data_points.error_code else 1 }}" 
+                       placeholder="倍率" min="1">
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button type="submit" class="btn primary">💾 設定完了</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="application/json" id="series-data">{{ series_list | tojson | safe }}</script>
+<script type="application/json" id="current-series">"{{ equipment.series or '' }}"</script>
+
+<script>
+  // PLCメーカー変更時のシリーズ更新
+  document.addEventListener('DOMContentLoaded', function() {
+    updateModbusPortState();
+  });
+
+  function updateModbusPortState() {
+    const manufacturerSelect = document.getElementById('manufacturer');
+    const seriesSelect = document.getElementById('series');
+    const series_data = JSON.parse(document.getElementById('series-data').textContent);
+    const currentSeries = JSON.parse(document.getElementById('current-series').textContent);
+
+    function updateSeries() {
+      const manufacturer = manufacturerSelect.value;
+      seriesSelect.innerHTML = '';
+
+      if (series_data[manufacturer]) {
+        series_data[manufacturer].forEach(function(series) {
+          const option = document.createElement('option');
+          option.value = series;
+          option.textContent = series;
+          if (series === currentSeries) {
+            option.selected = true;
+          }
+          seriesSelect.appendChild(option);
+        });
+      }
+    }
+
+    manufacturerSelect.addEventListener('change', updateSeries);
+    updateSeries();
+  }
+
+  // チェックボックス連動でフィールドの有効/無効を切り替え
+  document.querySelectorAll('.plc-config-toggle input[type="checkbox"]').forEach(function(checkbox) {
+    checkbox.addEventListener('change', function() {
+      const configItem = this.closest('.plc-config-item');
+      const inputs = configItem.querySelectorAll('.plc-config-inputs input, .plc-config-inputs select');
+      
+      inputs.forEach(function(input) {
+        input.disabled = !checkbox.checked;
+        if (!checkbox.checked) {
+          input.style.opacity = '0.5';
+        } else {
+          input.style.opacity = '1';
+        }
+      });
+    });
+    
+    // 初期化時に実行
+    checkbox.dispatchEvent(new Event('change'));
+  });
+</script>
+{% endblock %}

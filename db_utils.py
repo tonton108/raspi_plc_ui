@@ -397,4 +397,39 @@ class ConfigManager:
             return True
         except Exception as e:
             print(f"❌ 設備ID保存エラー: {e}")
-            return False 
+            return False
+    
+    def save_admin_password(self, password_hash):
+        """管理者パスワードハッシュをローカル設定に保存"""
+        try:
+            # 現在の設定を読み込み
+            config_data = self._load_json_config()
+            
+            # パスワードハッシュを更新
+            config_data["admin_password_hash"] = password_hash
+            
+            # 設定を保存
+            self._save_json_config(config_data)
+            print("📝 管理者パスワードをローカル設定に保存しました")
+            
+            return True
+        except Exception as e:
+            print(f"❌ 管理者パスワード保存エラー: {e}")
+            return False
+    
+    def get_admin_password_hash(self):
+        """管理者パスワードハッシュを取得（ローカル設定優先）"""
+        try:
+            config_data = self._load_json_config()
+            local_hash = config_data.get("admin_password_hash")
+            
+            if local_hash:
+                print("✅ ローカル設定のパスワードハッシュを使用")
+                return local_hash
+            else:
+                print("⚠️ ローカル設定にパスワードなし、デフォルトを使用")
+                return None  # デフォルトまたは環境変数を使用
+                
+        except Exception as e:
+            print(f"❌ パスワードハッシュ取得エラー: {e}")
+            return None 

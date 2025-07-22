@@ -29,12 +29,21 @@ while IFS=, read -r ip; do
   # 2. systemd サービスファイル転送
   scp "$SERVICE_FILE" "$USER@$ip:/home/pi/" &>> "$LOG_FILE"
 
-  # 3. systemd 設定（SSH実行）
+  # 3. 実行権限付与とsystemd設定（SSH実行）
   ssh "$USER@$ip" <<EOF
+# 実行権限付与
+chmod +x /home/pi/$PROJECT_DIR/check_and_launch_ui.py
+chmod +x /home/pi/$PROJECT_DIR/utils/start_chromium_kiosk.sh
+
+# systemdサービス設定
 sudo mv /home/pi/$(basename $SERVICE_FILE) $REMOTE_SERVICE_PATH
 sudo systemctl daemon-reload
 sudo systemctl enable plc_ui.service
 sudo systemctl start plc_ui.service
+
+# 必要なパッケージのインストール確認
+sudo apt update
+sudo apt install -y chromium-browser curl
 EOF
 
   if [[ $? -eq 0 ]]; then

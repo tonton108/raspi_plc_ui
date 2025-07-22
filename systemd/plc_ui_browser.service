@@ -1,0 +1,22 @@
+[Unit]
+Description=Raspi PLC UI Browser (Chromium Kiosk Mode)
+After=plc_ui.service
+Requires=plc_ui.service
+Wants=graphical-session.target
+
+[Service]
+Type=simple
+ExecStartPre=/bin/sleep 15
+ExecStart=/bin/bash /home/nissin/raspi_plc_ui/utils/start_chromium_kiosk.sh http://localhost:5001
+Restart=always
+RestartSec=10
+User=nissin
+Group=nissin
+Environment=DISPLAY=:0.0
+Environment=XAUTHORITY=/home/nissin/.Xauthority
+
+# X11環境での実行を許可
+PAMName=login
+
+[Install]
+WantedBy=graphical.target 
